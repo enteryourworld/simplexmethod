@@ -1,0 +1,324 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <iomanip>
+using namespace std;
+
+void basis_search(std::vector<double>& basis, std::vector<std::vector<double>>& a, int n, int& m, std::vector<double>& c) {
+    for (int j = 0; j < m; j++) {
+        int f = -1;
+        for (int i = 0; i < n; i++) {
+            if (a[i][j] == 0) continue;
+            else if (a[i][j] == 1 && f == -1) {
+                f = i;
+            }
+            else {
+                f = -1;
+                break;
+            }
+        }
+        if (f != -1) {
+            basis[f] = j;
+        }
+    }
+    for (int i = 0; i < n; i++) {
+        if (basis[i] == -1) {
+            basis[i] = m++;
+            for (int j = 0; j < n; j++) {
+                if (j == i) a[j].push_back(1);
+                else a[j].push_back(0);
+            }
+            c.push_back(-1);
+        }
+    }
+}
+
+void print_table(std::vector<double> basis, std::vector<std::vector<double>> a, int n, int m, int m1, std::vector<double> c, std::vector<double> b1, std::vector<double> d1, std::vector<double> d2, bool f) {
+    if (!f) m1 = m;
+    //cout << "                                A0     ";
+    //for (int i = 0; i < m1; i++) {
+      //  cout << "    " << std::setw(8) << c[i];
+    //}
+    cout << "\n";
+    cout << " № ";
+    cout << " base ";
+    cout << "    Cb  ";
+    cout << "        A0  ";
+    for (int i = 0; i < m1; i++) {
+        cout << "          A" << i + 1;
+    }
+    cout << "\n";
+    for (int i = 0; i < n; i++) {
+        cout << " " << i + 1 << " ";
+        cout << "  A" << basis[i] + 1 << "  ";
+        cout << "  " << setw(4) << c[basis[i]] << "  ";
+        cout << "  " << setw(8) << setprecision(3) << b1[i] << "  ";
+        
+        for (int j = 0; j < m1; j++) {
+            cout << "    " << setw(8) << setprecision(3) << (a[i][j] == 0 ? abs(a[i][j]) : a[i][j]);
+        }
+        std::cout << "\n";
+    }
+    cout << " " << n + 1 << " ";
+    cout << "  --  ";
+    cout << "     dj ";
+
+    cout << "  " << setw(8) << setprecision(3) << d1[0] << "  ";
+    cout << "  " << setw(8) << setprecision(3) << d1[1];
+    for (int j = 0; j < m1; j++) {
+        cout << "    " << setw(8) << setprecision(3) << d1[j + 2];
+    }
+    cout << "\n";
+    if (f) {
+        cout << " " << n + 2 << " ";
+        cout << "  --  ";
+        cout << "     -- ";
+        cout << "  " << setw(8) << setprecision(3) << d2[0] << "  ";
+        cout << "  " << setw(8) << setprecision(3) << d2[1];
+        for (int j = 0; j < m1; j++) {
+            cout << "    " << std::setw(8) << std::setprecision(3) << d2[j + 2];
+        }
+        cout << "\n";
+    }
+
+}
+
+bool is_art(std::vector<double> basis, int m, int n) {
+    for (int i = 0; i < n; i++) {
+        if (basis[i] >= m) return 1;
+    }
+    return 0;
+}
+
+void create_d(std::vector<double>& d1, std::vector<double>& d2, std::vector<double> basis, std::vector<double> c, std::vector<double> b1, std::vector<std::vector<double>> a, int m, int m1, int n, bool f) {
+    double s1 = 0, s2 = 0;
+    for (int i = 0; i < n; i++) {
+        if (basis[i] < m) {
+            s1 += c[basis[i]] * b1[i];
+
+        }
+    }
+    d1[0] = s1;
+    d1[1] = s2;
+    for (int j = 0; j < m1; j++) {
+        double s = 0;
+        for (int i = 0; i < n; i++) {
+            if (basis[i] < m) {
+                s += c[basis[i]] * a[i][j];
+            }
+        }
+        if (j < m) s -= c[j];
+        d1[j + 2] = s;
+    }
+    if (f) {
+        double s1 = 0, s2 = 0;
+        for (int i = 0; i < n; i++) {
+            if (basis[i] >= m) {
+                s1 += c[basis[i]] * b1[i];
+
+            }
+        }
+        d2[0] = s1;
+        d2[1] = s2;
+        for (int j = 0; j < m1; j++) {
+            double s = 0;
+            for (int i = 0; i < n; i++) {
+                if (basis[i] >= m) {
+                    s += c[basis[i]] * a[i][j];
+                }
+            }
+            if (j >= m) s -= c[j];
+            d2[j + 2] = s;
+        }
+    }
+}
+
+void ck(std::vector<vector<double>>& a, int n, int m, vector<double>& b1) {
+    for (int i = 0; i < n; i++) {
+        if (b1[i] < 0) {
+            b1[i] *= -1;
+            for (int j = 0; j < m; j++) a[i][j] = (a[i][j] == 0) ? 0 : a[i][j] * (-1);
+        }
+    }
+}
+
+bool in(vector<double> d, double x) {
+    for (auto i : d) {
+        if (i == x) return 1;
+    }
+    return 0;
+}
+
+bool pos(vector<vector<double>> a, int j, int n) {
+    for (int i = 0; i < n; i++) {
+        if (a[i][j] > 0) return 1;
+    }
+    return 0;
+}
+
+bool neg(vector<double> d, int m) {
+    for (int i = 0; i < m; i++) {
+        if (d[i + 2] < 0) return 1;
+    }
+    return 0;
+}
+
+bool simplex_method(vector<double>& basis, vector<vector<double>>& a, int n, int m, int m1, vector<double> c, vector<double>& b1, vector<double>& d1, vector<double>& d2) {
+    vector<double> ignore;
+    int step = 0;
+    while (is_art(basis, m, n)) {
+        cout << "Шаг: " << ++step << "\n";
+        double min = 100;
+        int column = -1;
+        for (int i = 0; i < m1; i++) {
+            if (!in(ignore, i)) min = std::min(min, d2[i + 2]);
+        }
+        if (min >= 0) {
+            cout << "Задача не имеет решений!\n";
+            return 0;
+        }
+        for (int i = 0; i < m1; i++) {
+            if (d2[i + 2] == min && pos(a, i, n) && !in(ignore, i)) column = i;
+        }
+        if (column == -1) {
+            cout << "Задача не имеет решений!\n";
+            return 0;
+        }
+        min = INT_MAX;
+        int line = -1;
+        for (int i = 0; i < n; i++) {
+            if (a[i][column] > 0) min = std::min(min, b1[i] / a[i][column]);
+        }
+        for (int i = 0; i < n; i++) {
+            if (a[i][column] > 0 && b1[i] / a[i][column] == min && basis[i] >= m) line = i;
+        }
+        if (line == -1) {
+            for (int i = 0; i < n; i++) {
+                if (a[i][column] > 0 && b1[i] / a[i][column] == min) line = i;
+            }
+        }
+        if (basis[line] >= m) ignore.push_back(basis[line]);
+        basis[line] = column;
+        double ij = a[line][column];
+        for (int j = 0; j < m1; j++) a[line][j] /= ij;
+        b1[line] /= ij;
+
+        for (int i = 0; i < n; i++) {
+            if (i != line) {
+                b1[i] -= a[i][column] * b1[line];
+
+                double ic = a[i][column];
+                for (int j = 0; j < m1; j++) {
+                    a[i][j] -= ic * a[line][j];
+                }
+            }
+        }
+        create_d(d1, d2, basis, c, b1, a, m, m1, n, is_art(basis, m, n));
+        print_table(basis, a, n, m, m1, c, b1, d1, d2, is_art(basis, m, n));
+    }
+    while (neg(d1, m)) {
+        cout << "Шаг: " << ++step << "\n";
+        double min = 100;
+        int column = -1;
+        for (int i = 0; i < m; i++) {
+            min = std::min(min, d1[i + 2]);
+        }
+        if (min >= 0) {
+            return 1;
+        }
+        for (int i = 0; i < m; i++) {
+            if (d1[i + 2] == min && pos(a, i, n)) column = i;
+        }
+        if (column == -1) {
+            cout << "Задача не имеет решений!\n";
+            return 0;
+        }
+        min = INT_MAX;
+        int line = -1;
+        for (int i = 0; i < n; i++) {
+            if (a[i][column] > 0) min = std::min(min, b1[i] / a[i][column]);
+        }
+        for (int i = 0; i < n; i++) {
+            if (a[i][column] > 0 && b1[i] / a[i][column] == min) line = i;
+        }
+        basis[line] = column;
+        double ij = a[line][column];
+        b1[line] /= ij;
+        for (int j = 0; j < m; j++) a[line][j] /= ij;
+        for (int i = 0; i < n; i++) {
+            if (i != line) {
+                b1[i] -= a[i][column] * b1[line];
+
+                double ic = a[i][column];
+                for (int j = 0; j < m; j++) {
+                    a[i][j] -= ic * a[line][j];
+                }
+            }
+        }
+        create_d(d1, d2, basis, c, b1, a, m, m1, n, is_art(basis, m, n));
+        print_table(basis, a, n, m, m1, c, b1, d1, d2, is_art(basis, m, n));
+    }
+    return 1;
+}
+
+
+
+void print_selection(std::vector<double> b1, std::vector<double> basis, int step, int m, int n, bool p, int d1) {
+    cout << "  basis = ( ";
+    for (auto i : basis) cout << "A" << i + 1 << " ";
+    cout << ")\n";
+    cout << "  ";
+    for (auto i : basis) cout << "x" << i + 1 << " = " << b1[i] << " ";
+    cout << endl;
+    if (!p) {
+        std::cout << "   Задача решений не имеет!" << "\n";
+        return;
+    }
+    cout << "  ";
+    cout << "F = " << d1;
+}
+int main() {
+    setlocale(LC_ALL, "russian");
+    int n, m, m1;
+    vector<double> b1, b2, c;
+    cout << "Введите количество переменных: ";
+    cin >> m;
+    m1 = m;
+    cout << "\n";
+    cout << "Введите количество ограничений: ";
+    cin >> n;
+    cout << "\n";
+    cout << "Введите матрицу:\n";
+    vector<std::vector<double>> a(n);
+    vector<double> basis(n, -1);
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < m; j++) {
+            double x;
+            cin >> x;
+            a[i].push_back(x);
+        }
+    }
+    cout << "Введите вектор b1: ";
+    for (int i = 0; i < n; i++) {
+        double x;
+        cin >> x;
+        b1.push_back(x);
+    }
+    cout << "\nВведите вектор c: ";
+    for (int i = 0; i < m; i++) {
+        double x;
+        cin >> x;
+        c.push_back(x);
+    }
+    cout << "\n";
+    ck(a, n, m, b1);
+    basis_search(basis, a, n, m1, c);
+    vector<double> d1(m1 + 2);
+    vector<double> d2(m1 + 2);
+    create_d(d1, d2, basis, c, b1, a, m, m1, n, is_art(basis, m, n));
+    print_table(basis, a, n, m, m1, c, b1, d1, d2, is_art(basis, m, n));
+    bool f = simplex_method(basis, a, n, m, m1, c, b1, d1, d2);
+    if (!f) return 1;
+    int step = 1;
+    print_selection(b1, basis, step, m, n, 1, d1[0]);
+}
